@@ -45,7 +45,7 @@ async function showAllDepartments () {
     let showResults = results;
     console.log("  \nAll Departments are Shown Below:");
     console.log(cTable.getTable(showResults));
-    return cTable.getTable(showResults);
+    initialPrompt();
     }
   });
 }
@@ -56,7 +56,7 @@ async function showAllRoles () {
     let showResults = results;
     console.log("  \nAll Roles are Shown Below:");
     console.log(cTable.getTable(showResults));
-    return showResults;
+    initialPrompt();
     }
   });
 }
@@ -67,47 +67,37 @@ async function showAllEmployees () {
     let showResults = results;
     console.log("  \nAll Employees are Shown Below:");
     console.log(cTable.getTable(showResults));
-    return showResults;
+    initialPrompt();
     }
   });
 }
 
 
+async function initialPrompt() {
+  inquirer
+    .prompt([
+      {
+        type: 'list',
+        message: 'Which would you like to do?',
+        name: 'showWhichGroup',
+        choices: ['Show All Departments', 'Show All Roles', 'Show All Employees'],
+      },
+    ])
+    .then((data) => {
+      console.log(data);
+      let choice = data.showWhichGroup;
+      switch (choice) {
+        case "Show All Departments":
+          return showAllDepartments();
+        case "Show All Roles":
+          return showAllRoles();
+        case "Show All Employees":
+          return showAllEmployees();
+      }
+    });
+}
 
-inquirer
-  .prompt([
-    /* {
-      type: 'input',
-      name: 'name',
-      message: 'What is your name?',
-    },
-    {
-      type: 'checkbox',
-      message: 'What languages do you know?',
-      name: 'stack',
-      choices: ['HTML', 'CSS', 'JavaScript', 'MySQL'],
-    }, */
-    {
-      type: 'list',
-      message: 'Which would you like to do?',
-      name: 'showWhichGroup',
-      choices: ['Show All Departments', 'Show All Roles', 'Show All Employees'],
-    },
-  ])
-  .then((data) => {
-    console.log(data);
-    let choice = data.showWhichGroup;
-    switch (choice) {
-      case "Show All Departments":
-        return showAllDepartments();
-      case "Show All Roles":
-        return showAllRoles();
-      case "Show All Employees":
-        return showAllEmployees();
-    }
-  });
-
-
+initialPrompt();
 
 // Default response for any other request (Not Found)
 app.use((req, res) => {
