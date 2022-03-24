@@ -31,17 +31,52 @@ db.query('DELETE FROM favorite_books WHERE id = ?', deletedRow, (err, result) =>
 }); */
 
 // query to VIEW ALL DEPARTMENTS
-db.query('SELECT * FROM department', function (err, results) {
+/* db.query('SELECT * FROM department', function (err, results) {
   if (err) {console.log(err)} else {
   const showResults = results;
   console.log("  \nAll Departments are Shown Below:");
   console.log(cTable.getTable(showResults));
   }
-});
+}); */
 
-/* inquirer
+async function showAllDepartments () {
+  db.query('SELECT * FROM department', function (err, results) {
+    if (err) {console.log(err)} else {
+    let showResults = results;
+    console.log("  \nAll Departments are Shown Below:");
+    console.log(cTable.getTable(showResults));
+    return cTable.getTable(showResults);
+    }
+  });
+}
+
+async function showAllRoles () {
+  db.query('SELECT * FROM role', function (err, results) {
+    if (err) {console.log(err)} else {
+    let showResults = results;
+    console.log("  \nAll Roles are Shown Below:");
+    console.log(cTable.getTable(showResults));
+    return showResults;
+    }
+  });
+}
+
+async function showAllEmployees () {
+  db.query('SELECT * FROM employee', function (err, results) {
+    if (err) {console.log(err)} else {
+    let showResults = results;
+    console.log("  \nAll Employees are Shown Below:");
+    console.log(cTable.getTable(showResults));
+    return showResults;
+    }
+  });
+}
+
+
+
+inquirer
   .prompt([
-    {
+    /* {
       type: 'input',
       name: 'name',
       message: 'What is your name?',
@@ -51,20 +86,27 @@ db.query('SELECT * FROM department', function (err, results) {
       message: 'What languages do you know?',
       name: 'stack',
       choices: ['HTML', 'CSS', 'JavaScript', 'MySQL'],
-    },
+    }, */
     {
       type: 'list',
-      message: 'What is your preferred method of communication?',
-      name: 'contact',
-      choices: ['email', 'phone', 'telekinesis'],
+      message: 'Which would you like to do?',
+      name: 'showWhichGroup',
+      choices: ['Show All Departments', 'Show All Roles', 'Show All Employees'],
     },
   ])
   .then((data) => {
-    console.log(data.name);
-    console.log(data.stack);
-    console.log(data.contact);
+    console.log(data);
+    let choice = data.showWhichGroup;
+    switch (choice) {
+      case "Show All Departments":
+        return showAllDepartments();
+      case "Show All Roles":
+        return showAllRoles();
+      case "Show All Employees":
+        return showAllEmployees();
+    }
   });
- */
+
 
 
 // Default response for any other request (Not Found)
