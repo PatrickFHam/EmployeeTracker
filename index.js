@@ -47,7 +47,7 @@ async function showAllEmptyRoles() {
   } else {
     console.log("All Empty Roles:");
     // console.log(emptyRoles);
-    // console.log(cTable.getTable(emptyRoles));
+    console.log(cTable.getTable(emptyRoles));
     topPrompt();
   };
   
@@ -118,14 +118,24 @@ function topPrompt() {
 };
 
 
-/* async function addDepartment() {
+async function addDepartment() {
+  await refreshLists();
 
+  const db = await mysql.createConnection({host:'localhost', user: 'root', password: 'password', database: 'company_db'});
+  const [rows, fields] = await db.query('SELECT * FROM department');
+  updatedDepartments = rows;
+
+  
+
+  console.log("All Departments:");
+  console.log(cTable.getTable(updatedDepartments));
+  topPrompt();
 }
 
 
 async function addRole() {
 
-} */
+}
 
 
 
@@ -134,13 +144,27 @@ async function addRole() {
 async function addEmployee() {
   await refreshLists();
 
+  const db = await mysql.createConnection({host:'localhost', user: 'root', password: 'password', database: 'company_db'});
+  const [rows, fields] = await db.query('SELECT role.id, title, salary FROM role LEFT JOIN employee ON role.id = employee.role_id WHERE employee.role_id IS NULL;');
+  let arrayOfPositionsToHireFor = rows.map(rows => ({name: `${rows.title}, with a salary of $${rows.salary}`, value: rows.id}));
+
+  if (arrayOfPositionsToHireFor.length == 0 ) {
+    console.log("All Positions are filled.  Fire somebody, if you need to make room for a new employee. Back to the Top!");
+    topPrompt();
+  };
+
+
+
+  const [managersRows, managersFields] = await db.query('SELECT first_name, last_name, role_id FROM employee WHERE (role_id IN (SELECT manager_id FROM employee));');
+  let managersRoleIDToAssignNewHire = managersRows.map(managersRows => ({name: `${managersRows.first_name} ${managersRows.last_name}`, value: managersRows.role_id}));
+
   await inquirer
     .prompt([
       {
         type: "list",
         message: "What is the new employee's TITLE?",
         name: "roleID",
-        choices: updatedEmptyRoles
+        choices: arrayOfPositionsToHireFor
       },
       {
         type: 'input',
@@ -155,49 +179,55 @@ async function addEmployee() {
       {
         type: "list",
         message: "Who is the employee's MANAGER?",
-        name: "empManagerID",
-        choices: updatedManagers
+        name: "empManagerRoleID",
+        choices: managersRoleIDToAssignNewHire
       }
     ]).then(function (response) {
-      // console.log(response)
-      console.log(response);
-      // let roleID = 
-
-      db.query("INSERT INTO employee SET ?",
-        {
-          first_name: response.empFirstName,
-          last_name: response.empLastName,
-          role_id: response.roleID,
-          manager_id: response.empManagerID
-        });
       
+      let objectToInsert = {
+        first_name: `${response.empFirstName}`,
+        last_name: `${response.empLastName}`,
+        role_id: `${response.roleID}`,
+        manager_id: `${response.empManagerRoleID}`};
+      
+      db.query("INSERT INTO employee SET ?", objectToInsert);
+
       topPrompt();
-    })
+
+      })
 };
 
 async function deleteEmployee() {
   await refreshLists();
   
+  console.log("Updated Employees list is:");
+  console.log(updatedEmployees);
+  console.log(cTable.getTable(updatedEmployees));
+
+  const db = await mysql.createConnection({host:'localhost', user: 'root', password: 'password', database: 'company_db'});
+
+  const [rows, fields] = await db.query('SELECT * FROM employee');
+  let arrayOfEmployeesToDelete = rows.map(rows => ({empID: rows.id, name:`${rows.first_name} ${rows.last_name}`, value: rows.id}));
+  console.log("array from which to delete:");
+  console.log(arrayOfEmployeesToDelete);
+  console.log(cTable.getTable(arrayOfEmployeesToDelete));
+
+
   await inquirer
     .prompt([
       {
         type: "list",
         message: "Which employee would you like to DELETE?",
         name: "deletedEmployee",
-        choices: updatedEmployees
+        choices: arrayOfEmployeesToDelete
       }
     ]).then(function (response) {
-      // console.log(response)
+      console.log(response)
 
-      deletedEmployeeChosenID = response.deletedEmployee;
+      let deletedEmployeeChosenID = response.deletedEmployee;
 
       db.query("DELETE FROM employee WHERE employee.id = ?", deletedEmployeeChosenID);
-
-      db.query("SELECT * from employee", function (error, res) {
-        // console.log(error, res);
-        updatedEmployees = res.map(employees => ({ name: `${employees.first_name} ${employees.last_name}`, value: employees.id }))
-        // console.log(cTable.getTable(updatedEmployees));
-      });
+      console.log(`Employee ID number ${deletedEmployeeChosenID} was deleted.  Back to the top!`);
 
       topPrompt();
     })
