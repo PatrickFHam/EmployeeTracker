@@ -20,6 +20,7 @@ const db = mysql.createConnection(
   console.log(`Connected to the company_db database.`)
 );
 
+let choice;
 let updatedDepartments;
 let updatedRoles;
 let updatedEmployees;
@@ -68,7 +69,7 @@ db.query('DELETE FROM favorite_books WHERE id = ?', deletedRow, (err, result) =>
   }
 }); */
 
-async function showAllDepartments () {
+function showAllDepartments () {
   db.query('SELECT * FROM department', function (err, results) {
     if (err) {console.log(err)} else {
     let showResults = results;
@@ -79,7 +80,7 @@ async function showAllDepartments () {
   });
 }
 
-async function showAllRoles () {
+function showAllRoles () {
   db.query('SELECT * FROM role', function (err, results) {
     if (err) {console.log(err)} else {
     let showResults = results;
@@ -90,7 +91,7 @@ async function showAllRoles () {
   });
 }
 
-async function showAllEmployees () {
+function showAllEmployees () {
   db.query('SELECT * FROM employee', function (err, results) {
     if (err) {console.log(err)} else {
     let showResults = results;
@@ -130,7 +131,7 @@ async function refreshLists() {
 }
 
 
-async function topPrompt() {
+function topPrompt() {
   inquirer
     .prompt([
       {
@@ -141,8 +142,7 @@ async function topPrompt() {
       },
     ])
     .then((data) => {
-      console.log(data);
-      let choice = data.showWhichGroup;
+      choice = data.showWhichGroup;
       switch (choice) {
         case "Show All Departments":
           return showAllDepartments();
@@ -161,17 +161,17 @@ async function topPrompt() {
 }
 
 
-async function addDepartment() {
+/* async function addDepartment() {
 
 }
 
 
 async function addRole() {
 
-}
+} */
 
 
-async function showAllEmptyRoles() {
+function showAllEmptyRoles() {
   db.query('SELECT role.id, title, salary FROM role LEFT JOIN employee ON role.id = employee.role_id WHERE employee.role_id IS NULL;', function (err, results) {
     if (err) {console.log(err)} else {
     updatedEmptyRoles = results;
@@ -183,23 +183,18 @@ async function showAllEmptyRoles() {
 };
 
 
-async function addEmployee() {
-  db.query("SELECT role.id, title, salary FROM role LEFT JOIN employee ON role.id = employee.role_id WHERE employee.role_id IS NULL;", function (error, res) {
-    updatedEmptyRoles = res.map(emptyRoles => ({ id: `${emptyRoles.id}`, title: `${emptyRoles.title}`, salary: `${emptyRoles.salary}`, value: emptyRoles.role.id}));
-    // console.log(cTable.getTable(updatedEmptyRoles));
-  });
-  
+function addEmployee() {
   inquirer
     .prompt([
       {
         type: 'input',
         message: "What is the new employee's FIRST NAME?",
-        name: "empFirstName",
+        name: "empFirstName"
       },
       {
         type: "input",
         message: "What is the new employee's LAST NAME?",
-        name: "empLastName",
+        name: "empLastName"
       },
       {
         type: "list",
@@ -215,21 +210,22 @@ async function addEmployee() {
       }
     ]).then(function (response) {
       // console.log(response)
-
+      console.log(response);
       // let roleID = 
 
-      db.query("INSERT INTO employee SET ?",
+      /* db.query("INSERT INTO employee SET ?",
         {
           first_name: response.empFirstName,
           last_name: response.empLastName,
           role_id: response.roleTitle,
           manager_id: response.empManager
-        })
-    })
-}
+        }) */
+    });
+    topPrompt();
+  };
 
 
-async function deleteEmployee() {
+function deleteEmployee() {
   inquirer
     .prompt([
       {
@@ -256,15 +252,15 @@ async function deleteEmployee() {
 }
 
 
-async function updateEmployeeRole () {
+/* async function updateEmployeeRole () {
 
-}
+} */
 
 
 
-async function runApp(){
-  await refreshLists();
-  await topPrompt();
+function runApp(){
+  refreshLists();
+  topPrompt();
 };
 
 runApp();
