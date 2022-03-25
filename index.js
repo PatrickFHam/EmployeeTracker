@@ -1,14 +1,7 @@
-const express = require('express');
 const mysql = require('mysql2');
+const promMysql = require ('mysql2/promise');
 const cTable = require('console.table');
 const inquirer = require('inquirer');
-const fs = require('fs');
-
-const PORT = process.env.PORT || 3001;
-const app = express();
-
-app.use(express.urlencoded({ extended: false }));
-app.use(express.json());
 
 const db = mysql.createConnection(
   {
@@ -27,48 +20,6 @@ let updatedEmployees;
 let updatedManagers;
 let updatedEmptyRoles;
 
-/* db.connect(function (err) {
-  if (err) {
-    console.error(err);
-    return;
-  }
-  
-  db.query("SELECT * from department", function (error, res) {
-    updatedDepartments = res.map(departments => ({ name: departments.name, value: departments.id }))
-  })
-
-  db.query("SELECT * from role", function (error, res) {
-    updatedRoles = res.map(roles => ({ name: roles.title, value: roles.id }))
-  })
-
-  db.query("SELECT * from employee", function (error, res) {
-    // console.log(error, res);
-    updatedEmployees = res.map(employees => ({ name: `${employees.first_name} ${employees.last_name}`, value: employees.id }))
-  })
-  
-  initialPrompt();
-}) */
-
-
-/* 
-let deletedRow = 2;
-
-db.query('DELETE FROM favorite_books WHERE id = ?', deletedRow, (err, result) => {
-  if (err) {
-    console.log(err);
-  }
-  console.log(result);
-}); */
-
-// query to VIEW ALL DEPARTMENTS
-/* db.query('SELECT * FROM department', function (err, results) {
-  if (err) {console.log(err)} else {
-  const showResults = results;
-  console.log("  \nAll Departments are Shown Below:");
-  console.log(cTable.getTable(showResults));
-  }
-}); */
-
 function showAllDepartments () {
   db.query('SELECT * FROM department', function (err, results) {
     if (err) {console.log(err)} else {
@@ -78,7 +29,7 @@ function showAllDepartments () {
     topPrompt();
     }
   });
-}
+};
 
 function showAllRoles () {
   db.query('SELECT * FROM role', function (err, results) {
@@ -89,7 +40,7 @@ function showAllRoles () {
     topPrompt();
     }
   });
-}
+};
 
 function showAllEmployees () {
   db.query('SELECT * FROM employee', function (err, results) {
@@ -100,9 +51,9 @@ function showAllEmployees () {
     topPrompt();
     }
   });
-}
+};
 
-async function refreshLists() {
+function refreshLists() {
   db.query("SELECT * from department", function (error, res) {
     updatedDepartments = res.map(departments => ({ name: departments.name, value: departments.id }))
   });
@@ -119,16 +70,17 @@ async function refreshLists() {
   });
 
   db.query("SELECT first_name, last_name, id FROM employee WHERE (role_id IN (SELECT manager_id FROM employee));", function (error, res) {
-    updatedManagers = res.map(managers => ({ name: `${managers.first_name} ${managers.last_name}`, value: managers.id}));
+    updatedManagers = res.map(managers => ({ name: `${managers.first_name} ${managers.last_name}`, value: managers.id }));
     // console.log(cTable.getTable(updatedManagers));
   });
 
-  db.query("SELECT role.id, title, salary FROM role LEFT JOIN employee ON role.id = employee.role_id WHERE employee.role_id IS NULL;", function (error, res) {
-    updatedEmptyRoles = res.map(emptyRoles => ({ id: `${emptyRoles.id}`, title: `${emptyRoles.title}`, salary: `${emptyRoles.salary}`, value: emptyRoles.role.id}));
-    console.log(cTable.getTable(updatedEmptyRoles));
+  db.query("SELECT title, salary, role.id FROM role LEFT JOIN employee ON role.id = employee.role_id WHERE employee.role_id IS NULL;", function (error, res) {
+    updatedEmptyRoles = res.map(emptyRoles => ({ name: `${emptyRoles.title} with salary of ${emptyRoles.salary}`, value: emptyRoles.role.id }));
+    // console.log(cTable.getTable(updatedEmptyRoles));
   })
+
   return
-}
+};
 
 
 function topPrompt() {
@@ -145,20 +97,26 @@ function topPrompt() {
       choice = data.showWhichGroup;
       switch (choice) {
         case "Show All Departments":
-          return showAllDepartments();
+          showAllDepartments();
+          break;
         case "Show All Roles":
-          return showAllRoles();
+          showAllRoles();
+          break;
         case "Show All Employees":
-          return showAllEmployees();
+          showAllEmployees();
+          break;
         case "Show All Empty Roles":
-          return showAllEmptyRoles();
+          showAllEmptyRoles();
+          break;
         case "Add an Employee":
-          return addEmployee();
+          addEmployee();
+          break;
         case "Delete an Employee":
-          return deleteEmployee();
+          deleteEmployee();
+          break;
       }
     });
-}
+};
 
 
 /* async function addDepartment() {
@@ -175,17 +133,38 @@ function showAllEmptyRoles() {
   db.query('SELECT role.id, title, salary FROM role LEFT JOIN employee ON role.id = employee.role_id WHERE employee.role_id IS NULL;', function (err, results) {
     if (err) {console.log(err)} else {
     updatedEmptyRoles = results;
+    
+    if (updatedEmptyRoles.length == 0) {
+      console.log("There are no empty roles.  \nReturning you back to the top-menu.");
+      return topPrompt();
+    } else {
+    
     console.log("  \nAll EMPTY Roles are Shown Below:");
     console.log(cTable.getTable(updatedEmptyRoles));
     topPrompt();
-    }
+    }}
   });
 };
 
 
-function addEmployee() {
-  inquirer
+async function addEmployee() {
+  
+  console.log("addEmployee chosen")
+  console.log("next will be to run refreshEmptyRolesArray")
+  await refreshEmptyRolesArray();
+
+  console.log("right before add employee prompts, updatedEmptyRoles array is: ")
+  console.log(updatedEmptyRoles);
+  console.log(cTable.getTable(updatedEmptyRoles));
+
+  await inquirer
     .prompt([
+      {
+        type: "list",
+        message: "What is the new employee's TITLE?",
+        name: "roleID",
+        choices: updatedEmptyRoles
+      },
       {
         type: 'input',
         message: "What is the new employee's FIRST NAME?",
@@ -198,14 +177,8 @@ function addEmployee() {
       },
       {
         type: "list",
-        message: "What is the new employee's TITLE?",
-        name: "roleTitle",
-        choices: updatedEmptyRoles
-      },
-      {
-        type: "list",
         message: "Who is the employee's MANAGER?",
-        name: "empManager",
+        name: "empManagerID",
         choices: updatedManagers
       }
     ]).then(function (response) {
@@ -213,17 +186,17 @@ function addEmployee() {
       console.log(response);
       // let roleID = 
 
-      /* db.query("INSERT INTO employee SET ?",
+      db.query("INSERT INTO employee SET ?",
         {
           first_name: response.empFirstName,
           last_name: response.empLastName,
-          role_id: response.roleTitle,
-          manager_id: response.empManager
-        }) */
-    });
-    topPrompt();
-  };
-
+          role_id: response.roleID,
+          manager_id: response.empManagerID
+        });
+      
+      topPrompt();
+    })
+};
 
 function deleteEmployee() {
   inquirer
@@ -249,10 +222,10 @@ function deleteEmployee() {
 
       topPrompt();
     })
-}
+};
 
 
-/* async function updateEmployeeRole () {
+/* function updateEmployeeRole () {
 
 } */
 
@@ -264,12 +237,3 @@ function runApp(){
 };
 
 runApp();
-
-// Default response for any other request (Not Found)
-app.use((req, res) => {
-  res.status(404).end();
-});
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
