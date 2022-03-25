@@ -16,7 +16,7 @@ VALUES
   (52, 'Music'),
   (53, 'Media');
 
-INSERT INTO role (`id`, `title`, `salary`, `department_id`)
+INSERT INTO role (`id`, `title`, `salary`, `dept_id`)
 VALUES
   (1201, 'Business Administrator', 85000, 12),
   (1202, 'Business Admin Assistant', 65000, 12),

@@ -1,17 +1,6 @@
-const mysql = require('mysql2');
-const promMysql = require ('mysql2/promise');
+const mysql = require('mysql2/promise');
 const cTable = require('console.table');
 const inquirer = require('inquirer');
-
-const db = mysql.createConnection(
-  {
-    host: 'localhost',
-    user: 'root',
-    password: 'password',
-    database: 'company_db'
-  },
-  console.log(`Connected to the company_db database.`)
-);
 
 let choice;
 let updatedDepartments;
@@ -20,64 +9,74 @@ let updatedEmployees;
 let updatedManagers;
 let updatedEmptyRoles;
 
-function showAllDepartments () {
-  db.query('SELECT * FROM department', function (err, results) {
-    if (err) {console.log(err)} else {
-    let showResults = results;
-    console.log("  \nAll Departments are Shown Below:");
-    console.log(cTable.getTable(showResults));
-    topPrompt();
-    }
-  });
+async function showAllDepartments () {
+  const db = await mysql.createConnection({host:'localhost', user: 'root', password: 'password', database: 'company_db'});
+  const [rows, fields] = await db.query('SELECT * FROM department');
+  updatedDepartments = rows;
+  console.log("All Departments:");
+  console.log(cTable.getTable(updatedDepartments));
+  topPrompt();
+}
+
+async function showAllRoles () {
+  const db = await mysql.createConnection({host:'localhost', user: 'root', password: 'password', database: 'company_db'});
+  const [rows, fields] = await db.query('SELECT * FROM role');
+  updatedRoles = rows;
+  console.log("All Roles:");
+  console.log(cTable.getTable(updatedRoles));
+  topPrompt();
 };
 
-function showAllRoles () {
-  db.query('SELECT * FROM role', function (err, results) {
-    if (err) {console.log(err)} else {
-    let showResults = results;
-    console.log("  \nAll Roles are Shown Below:");
-    console.log(cTable.getTable(showResults));
-    topPrompt();
-    }
-  });
+async function showAllEmployees () {
+  const db = await mysql.createConnection({host:'localhost', user: 'root', password: 'password', database: 'company_db'});
+  const [rows, fields] = await db.query('SELECT * FROM employee');
+  updatedEmployees = rows;
+  console.log("All Employees:");
+  console.log(cTable.getTable(updatedEmployees));
+  topPrompt();
 };
 
-function showAllEmployees () {
-  db.query('SELECT * FROM employee', function (err, results) {
-    if (err) {console.log(err)} else {
-    let showResults = results;
-    console.log("  \nAll Employees are Shown Below:");
-    console.log(cTable.getTable(showResults));
+async function showAllEmptyRoles() {
+  const db = await mysql.createConnection({host:'localhost', user: 'root', password: 'password', database: 'company_db'});
+  const [rows, fields] = await db.query('SELECT role.id, title, salary FROM role LEFT JOIN employee ON role.id = employee.role_id WHERE employee.role_id IS NULL;');
+  let emptyRoles = rows.map(rows => ({emptyRolesID: rows.id, emptyRolesTitle: rows.title, emptyRolesSalary: rows.salary}));
+
+  if (emptyRoles.length == 0 ) {
+    console.log("There are no empty roles.  You'll be taken to the top menu now.");
     topPrompt();
-    }
-  });
+  } else {
+    console.log("All Empty Roles:");
+    // console.log(emptyRoles);
+    // console.log(cTable.getTable(emptyRoles));
+    topPrompt();
+  };
+  
 };
 
-function refreshLists() {
-  db.query("SELECT * from department", function (error, res) {
-    updatedDepartments = res.map(departments => ({ name: departments.name, value: departments.id }))
-  });
 
-  db.query("SELECT * from role", function (error, res) {
-    updatedRoles = res.map(roles => ({ name: roles.title, value: roles.id }));
-    // console.log(cTable.getTable(updatedRoles));
-  });
 
-  db.query("SELECT * from employee", function (error, res) {
-    // console.log(error, res);
-    updatedEmployees = res.map(employees => ({ name: `${employees.first_name} ${employees.last_name}`, value: employees.id }))
-    // console.log(cTable.getTable(updatedEmployees));
-  });
+async function refreshLists() {
+  const db = await mysql.createConnection({host:'localhost', user: 'root', password: 'password', database: 'company_db'});
+  
+  // Updated Departments
+  const [deptRows, deptFields] = await db.query('SELECT * FROM department');
+  updatedDepartments = deptRows.map(deptRows => ({deptID: deptRows.id, deptName: deptRows.dept_name}));
 
-  db.query("SELECT first_name, last_name, id FROM employee WHERE (role_id IN (SELECT manager_id FROM employee));", function (error, res) {
-    updatedManagers = res.map(managers => ({ name: `${managers.first_name} ${managers.last_name}`, value: managers.id }));
-    // console.log(cTable.getTable(updatedManagers));
-  });
+  // Updated Roles
+  const [rolesRows, rolesFields] = await db.query('SELECT * FROM role');
+  updatedRoles = rolesRows.map(rolesRows => ({roleID: rolesRows.id, roleTitle: rolesRows.title, roleSalary: rolesRows.salary, roleDeptID: rolesRows.dept_id}));
+  
+  // Updated Employees
+  const [empRows, empFields] = await db.query('SELECT * FROM employee');
+  updatedEmployees = empRows.map(empRows => ({empID: empRows.id, empFirstName: empRows.first_name, empLastName: empRows.last_name, empRoleID: empRows.role_id, empManagerID: empRows.manager_id}));
 
-  db.query("SELECT title, salary, role.id FROM role LEFT JOIN employee ON role.id = employee.role_id WHERE employee.role_id IS NULL;", function (error, res) {
-    updatedEmptyRoles = res.map(emptyRoles => ({ name: `${emptyRoles.title} with salary of ${emptyRoles.salary}`, value: emptyRoles.role.id }));
-    // console.log(cTable.getTable(updatedEmptyRoles));
-  })
+// Updated Managers
+  const [managersRows, managersFields] = await db.query('SELECT first_name, last_name, id FROM employee WHERE (role_id IN (SELECT manager_id FROM employee));');
+  updatedManagers = managersRows.map(managersRows => ({managersID: managersRows.id, managersFirstName: managersRows.first_name, managersLastName: managersRows.last_name}));
+  
+  // Updated Empty Roles
+  const [emptyRolesRows, emptyRolesFields] = await db.query('SELECT title, salary, role.id FROM role LEFT JOIN employee ON role.id = employee.role_id WHERE employee.role_id IS NULL;');
+  updatedEmptyRoles = emptyRolesRows.map(emptyRolesRows => ({emptyRolesID: emptyRolesRows.id, emptyRolesTitle: emptyRolesRows.title, emptyRolesSalary: emptyRolesRows.salary}));
 
   return
 };
@@ -129,33 +128,11 @@ async function addRole() {
 } */
 
 
-function showAllEmptyRoles() {
-  db.query('SELECT role.id, title, salary FROM role LEFT JOIN employee ON role.id = employee.role_id WHERE employee.role_id IS NULL;', function (err, results) {
-    if (err) {console.log(err)} else {
-    updatedEmptyRoles = results;
-    
-    if (updatedEmptyRoles.length == 0) {
-      console.log("There are no empty roles.  \nReturning you back to the top-menu.");
-      return topPrompt();
-    } else {
-    
-    console.log("  \nAll EMPTY Roles are Shown Below:");
-    console.log(cTable.getTable(updatedEmptyRoles));
-    topPrompt();
-    }}
-  });
-};
+
 
 
 async function addEmployee() {
-  
-  console.log("addEmployee chosen")
-  console.log("next will be to run refreshEmptyRolesArray")
-  await refreshEmptyRolesArray();
-
-  console.log("right before add employee prompts, updatedEmptyRoles array is: ")
-  console.log(updatedEmptyRoles);
-  console.log(cTable.getTable(updatedEmptyRoles));
+  await refreshLists();
 
   await inquirer
     .prompt([
@@ -198,8 +175,10 @@ async function addEmployee() {
     })
 };
 
-function deleteEmployee() {
-  inquirer
+async function deleteEmployee() {
+  await refreshLists();
+  
+  await inquirer
     .prompt([
       {
         type: "list",
@@ -225,14 +204,9 @@ function deleteEmployee() {
 };
 
 
-/* function updateEmployeeRole () {
 
-} */
-
-
-
-function runApp(){
-  refreshLists();
+async function runApp(){
+  await refreshLists();
   topPrompt();
 };
 
