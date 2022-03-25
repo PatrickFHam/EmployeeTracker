@@ -9,6 +9,8 @@ let updatedEmployees;
 let updatedManagers;
 let updatedEmptyRoles;
 
+
+
 async function showAllDepartments () {
   const db = await mysql.createConnection({host:'localhost', user: 'root', password: 'password', database: 'company_db'});
   const [rows, fields] = await db.query('SELECT * FROM department');
@@ -82,6 +84,7 @@ async function refreshLists() {
 };
 
 
+
 function topPrompt() {
   inquirer
     .prompt([
@@ -124,6 +127,7 @@ function topPrompt() {
 };
 
 
+
 async function addDepartment() {
   await refreshLists();
 
@@ -160,6 +164,7 @@ async function addDepartment() {
     )
   
 };
+
 
 
 async function addRole() {
@@ -212,8 +217,6 @@ async function addRole() {
     )
   
 };
-
-
 
 
 
@@ -273,21 +276,15 @@ async function addEmployee() {
       })
 };
 
+
+
 async function deleteEmployee() {
   await refreshLists();
-  
-  console.log("Updated Employees list is:");
-  console.log(updatedEmployees);
-  console.log(cTable.getTable(updatedEmployees));
 
   const db = await mysql.createConnection({host:'localhost', user: 'root', password: 'password', database: 'company_db'});
 
   const [rows, fields] = await db.query('SELECT * FROM employee');
   let arrayOfEmployeesToDelete = rows.map(rows => ({empID: rows.id, name:`${rows.first_name} ${rows.last_name}`, value: rows.id}));
-  console.log("array from which to delete:");
-  console.log(arrayOfEmployeesToDelete);
-  console.log(cTable.getTable(arrayOfEmployeesToDelete));
-
 
   await inquirer
     .prompt([
@@ -315,5 +312,7 @@ async function runApp(){
   await refreshLists();
   topPrompt();
 };
+
+
 
 runApp();
