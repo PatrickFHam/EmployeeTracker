@@ -16,7 +16,7 @@ async function showAllDepartments () {
   console.log("All Departments:");
   console.log(cTable.getTable(updatedDepartments));
   topPrompt();
-}
+};
 
 async function showAllRoles () {
   const db = await mysql.createConnection({host:'localhost', user: 'root', password: 'password', database: 'company_db'});
@@ -89,7 +89,7 @@ function topPrompt() {
         type: 'list',
         message: 'Which would you like to do?',
         name: 'showWhichGroup',
-        choices: ['Show All Departments', 'Show All Roles', 'Show All Employees', 'Show All Empty Roles', 'Add an Employee', "Delete an Employee"]
+        choices: ['Show All Departments', 'Show All Roles', 'Show All Employees', 'Show All Empty Roles', 'Add an Employee', "Delete an Employee", "Add a Department", "Add a Role"]
       },
     ])
     .then((data) => {
@@ -113,6 +113,12 @@ function topPrompt() {
         case "Delete an Employee":
           deleteEmployee();
           break;
+        case "Add a Department":
+          addDepartment();
+          break;
+        case "Add a Role":
+          addRole();
+          break;
       }
     });
 };
@@ -125,17 +131,87 @@ async function addDepartment() {
   const [rows, fields] = await db.query('SELECT * FROM department');
   updatedDepartments = rows;
 
-  
-
-  console.log("All Departments:");
+  console.log("These are the current deparment IDs and names:");
   console.log(cTable.getTable(updatedDepartments));
-  topPrompt();
-}
+
+  await inquirer
+    .prompt([
+      {
+        type: 'input',
+        message: "What will be the ID number of the new department (2 digits)?",
+        name: "newDeptID"
+      },
+      {
+        type: "input",
+        message: "What is the name of the new department?",
+        name: "newDeptName"
+      }
+    ])
+    .then(function(response){
+
+      let objectToInsert = {
+        id: response.newDeptID,
+        dept_name: response.newDeptName
+      };
+
+      db.query("INSERT INTO department SET ?", objectToInsert);
+      topPrompt();
+    }
+    )
+  
+};
 
 
 async function addRole() {
+  await refreshLists();
 
-}
+  const db = await mysql.createConnection({host:'localhost', user: 'root', password: 'password', database: 'company_db'});
+  const [rows, fields] = await db.query('SELECT * FROM role');
+  updatedRoles = rows;
+
+  console.log("These are the current role IDs, titles, salary, and department ID:");
+  console.log(cTable.getTable(updatedRoles));
+
+  await inquirer
+    .prompt([
+      {
+        type: 'input',
+        message: "What will be the ID number of the new role? (4 digits)",
+        name: "newRoleID"
+      },
+      {
+        type: 'input',
+        message: "What will be the TITLE of the new department?",
+        name: "newRoleTitle"
+      },
+      {
+        type: 'input',
+        message: "What will be the SALARY of the new role? (no commas, 5 digits, or 7 with a decimal point)",
+        name: "newRoleSalary"
+      },
+      {
+        type: "input",
+        message: "What is the new role's DEPARTMENT ID NUMBER? (2 digits)",
+        name: "newRoleDeptID"
+      }
+    ])
+    .then(function(response){
+
+      let objectToInsert = {
+        id: response.newRoleID,
+        title: response.newRoleTitle,
+        salary: response.newRoleSalary,
+        dept_id: response.newRoleDeptID
+      };
+
+      db.query("INSERT INTO role SET ?", objectToInsert);
+      console.log("All Departments:");
+      console.log(cTable.getTable(updatedDepartments));
+      topPrompt();
+    }
+    )
+  
+};
 
 
 
