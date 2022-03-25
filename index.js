@@ -20,6 +20,33 @@ const db = mysql.createConnection(
   console.log(`Connected to the company_db database.`)
 );
 
+let updatedDepartments;
+let updatedRoles;
+let updatedEmployees;
+
+db.connect(function (err) {
+  if (err) {
+    console.error(err);
+    return;
+  }
+  
+  db.query("SELECT * from department", function (error, res) {
+    updatedDepartments = res.map(departments => ({ name: departments.name, value: departments.id }))
+  })
+
+  db.query("SELECT * from role", function (error, res) {
+    updatedRoles = res.map(roles => ({ name: roles.title, value: roles.id }))
+  })
+
+  db.query("SELECT * from employee", function (error, res) {
+    // console.log(error, res);
+    updatedEmployees = res.map(employees => ({ name: `${employees.first_name} ${employees.last_name}`, value: employees.id }))
+  })
+  
+  initialPrompt();
+})
+
+
 /* 
 let deletedRow = 2;
 
@@ -97,7 +124,29 @@ async function initialPrompt() {
     });
 }
 
-initialPrompt();
+
+async function addDepartment() {
+
+}
+
+
+async function addRole() {
+
+}
+
+
+async function addEmployee() {
+
+}
+
+
+async function updateEmployeeRole () {
+
+}
+
+
+
+
 
 // Default response for any other request (Not Found)
 app.use((req, res) => {
