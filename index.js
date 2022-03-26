@@ -1,7 +1,9 @@
+// DEPENDENCIES
 const mysql = require('mysql2/promise');
 const cTable = require('console.table');
 const inquirer = require('inquirer');
 
+// READY-TO-GO GOLBAL VARIABLES, will be adjusted throughout.
 let choice;
 let updatedDepartments;
 let updatedRoles;
@@ -11,6 +13,7 @@ let updatedEmptyRoles;
 
 
 
+// FUNCTIONS WITH BASIC QUERIES, TO SHOW ALL OF SOMETHING
 async function showAllDepartments () {
   const db = await mysql.createConnection({host:'localhost', user: 'root', password: 'password', database: 'company_db'});
   const [rows, fields] = await db.query('SELECT * FROM department');
@@ -38,6 +41,7 @@ async function showAllEmployees () {
   topPrompt();
 };
 
+// FUNCTION TO SHOW ROLES THAT DON'T HAVE EMPLOYEES ASSIGNED TO THEM
 async function showAllEmptyRoles() {
   const db = await mysql.createConnection({host:'localhost', user: 'root', password: 'password', database: 'company_db'});
   const [rows, fields] = await db.query('SELECT role.id, title, salary FROM role LEFT JOIN employee ON role.id = employee.role_id WHERE employee.role_id IS NULL;');
@@ -56,78 +60,7 @@ async function showAllEmptyRoles() {
 };
 
 
-
-async function refreshLists() {
-  const db = await mysql.createConnection({host:'localhost', user: 'root', password: 'password', database: 'company_db'});
-  
-  // Updated Departments
-  const [deptRows, deptFields] = await db.query('SELECT * FROM department');
-  updatedDepartments = deptRows.map(deptRows => ({deptID: deptRows.id, deptName: deptRows.dept_name}));
-
-  // Updated Roles
-  const [rolesRows, rolesFields] = await db.query('SELECT * FROM role');
-  updatedRoles = rolesRows.map(rolesRows => ({roleID: rolesRows.id, roleTitle: rolesRows.title, roleSalary: rolesRows.salary, roleDeptID: rolesRows.dept_id}));
-  
-  // Updated Employees
-  const [empRows, empFields] = await db.query('SELECT * FROM employee');
-  updatedEmployees = empRows.map(empRows => ({empID: empRows.id, empFirstName: empRows.first_name, empLastName: empRows.last_name, empRoleID: empRows.role_id, empManagerID: empRows.manager_id}));
-
-// Updated Managers
-  const [managersRows, managersFields] = await db.query('SELECT first_name, last_name, id FROM employee WHERE (role_id IN (SELECT manager_id FROM employee));');
-  updatedManagers = managersRows.map(managersRows => ({managersID: managersRows.id, managersFirstName: managersRows.first_name, managersLastName: managersRows.last_name}));
-  
-  // Updated Empty Roles
-  const [emptyRolesRows, emptyRolesFields] = await db.query('SELECT title, salary, role.id FROM role LEFT JOIN employee ON role.id = employee.role_id WHERE employee.role_id IS NULL;');
-  updatedEmptyRoles = emptyRolesRows.map(emptyRolesRows => ({emptyRolesID: emptyRolesRows.id, emptyRolesTitle: emptyRolesRows.title, emptyRolesSalary: emptyRolesRows.salary}));
-
-  return
-};
-
-
-
-function topPrompt() {
-  inquirer
-    .prompt([
-      {
-        type: 'list',
-        message: 'Which would you like to do?',
-        name: 'showWhichGroup',
-        choices: ['Show All Departments', 'Show All Roles', 'Show All Employees', 'Show All Empty Roles', 'Add an Employee', "Delete an Employee", "Add a Department", "Add a Role"]
-      },
-    ])
-    .then((data) => {
-      choice = data.showWhichGroup;
-      switch (choice) {
-        case "Show All Departments":
-          showAllDepartments();
-          break;
-        case "Show All Roles":
-          showAllRoles();
-          break;
-        case "Show All Employees":
-          showAllEmployees();
-          break;
-        case "Show All Empty Roles":
-          showAllEmptyRoles();
-          break;
-        case "Add an Employee":
-          addEmployee();
-          break;
-        case "Delete an Employee":
-          deleteEmployee();
-          break;
-        case "Add a Department":
-          addDepartment();
-          break;
-        case "Add a Role":
-          addRole();
-          break;
-      }
-    });
-};
-
-
-
+// FUNCTIONS TO ADD TO THE DATABASE TABLES
 async function addDepartment() {
   await refreshLists();
 
@@ -180,8 +113,6 @@ async function addDepartment() {
     )
   
 };
-
-
 
 async function addRole() {
   await refreshLists();
@@ -266,8 +197,6 @@ async function addRole() {
   
 };
 
-
-
 async function addEmployee() {
   await refreshLists();
 
@@ -279,8 +208,6 @@ async function addEmployee() {
     console.log("All Positions are filled.  Fire somebody, if you need to make room for a new employee. Back to the Top!");
     topPrompt();
   };
-
-
 
   const [managersRows, managersFields] = await db.query('SELECT first_name, last_name, role_id FROM employee WHERE (role_id IN (SELECT manager_id FROM employee));');
   let managersRoleIDToAssignNewHire = managersRows.map(managersRows => ({name: `${managersRows.first_name} ${managersRows.last_name}`, value: managersRows.role_id}));
@@ -334,14 +261,12 @@ async function addEmployee() {
         manager_id: `${response.empManagerRoleID}`};
       
       db.query("INSERT INTO employee SET ?", objectToInsert);
-
       topPrompt();
-
       })
 };
 
 
-
+// FUNCTION TO REMOVE EMPLOYEE FROM THAT TABLE
 async function deleteEmployee() {
   await refreshLists();
 
@@ -372,11 +297,83 @@ async function deleteEmployee() {
 
 
 
+
+// KEEPS THESE LISTS WITH UPDATED DATA
+async function refreshLists() {
+  const db = await mysql.createConnection({host:'localhost', user: 'root', password: 'password', database: 'company_db'});
+  
+  // Updated Departments
+  const [deptRows, deptFields] = await db.query('SELECT * FROM department');
+  updatedDepartments = deptRows.map(deptRows => ({deptID: deptRows.id, deptName: deptRows.dept_name}));
+
+  // Updated Roles
+  const [rolesRows, rolesFields] = await db.query('SELECT * FROM role');
+  updatedRoles = rolesRows.map(rolesRows => ({roleID: rolesRows.id, roleTitle: rolesRows.title, roleSalary: rolesRows.salary, roleDeptID: rolesRows.dept_id}));
+  
+  // Updated Employees
+  const [empRows, empFields] = await db.query('SELECT * FROM employee');
+  updatedEmployees = empRows.map(empRows => ({empID: empRows.id, empFirstName: empRows.first_name, empLastName: empRows.last_name, empRoleID: empRows.role_id, empManagerID: empRows.manager_id}));
+
+// Updated Managers
+  const [managersRows, managersFields] = await db.query('SELECT first_name, last_name, id FROM employee WHERE (role_id IN (SELECT manager_id FROM employee));');
+  updatedManagers = managersRows.map(managersRows => ({managersID: managersRows.id, managersFirstName: managersRows.first_name, managersLastName: managersRows.last_name}));
+  
+  // Updated Empty Roles
+  const [emptyRolesRows, emptyRolesFields] = await db.query('SELECT title, salary, role.id FROM role LEFT JOIN employee ON role.id = employee.role_id WHERE employee.role_id IS NULL;');
+  updatedEmptyRoles = emptyRolesRows.map(emptyRolesRows => ({emptyRolesID: emptyRolesRows.id, emptyRolesTitle: emptyRolesRows.title, emptyRolesSalary: emptyRolesRows.salary}));
+
+  return
+};
+
+
+
+// MAIN USER PROMPT
+function topPrompt() {
+  inquirer
+    .prompt([
+      {
+        type: 'list',
+        message: 'Which would you like to do?',
+        name: 'showWhichGroup',
+        choices: ['Show All Departments', 'Show All Roles', 'Show All Employees', 'Show All Empty Roles', 'Add an Employee', "Delete an Employee", "Add a Department", "Add a Role"]
+      },
+    ])
+    .then((data) => {
+      choice = data.showWhichGroup;
+      switch (choice) {
+        case "Show All Departments":
+          showAllDepartments();
+          break;
+        case "Show All Roles":
+          showAllRoles();
+          break;
+        case "Show All Employees":
+          showAllEmployees();
+          break;
+        case "Show All Empty Roles":
+          showAllEmptyRoles();
+          break;
+        case "Add an Employee":
+          addEmployee();
+          break;
+        case "Delete an Employee":
+          deleteEmployee();
+          break;
+        case "Add a Department":
+          addDepartment();
+          break;
+        case "Add a Role":
+          addRole();
+          break;
+      }
+    });
+};
+
+// UPDATES THE LISTS BEFORE RUNNING THE INITIAL USER PROMPT
 async function runApp(){
   await refreshLists();
   topPrompt();
 };
 
-
-
+// FUNCTION TO RUN UPON FILE LOAD
 runApp();
