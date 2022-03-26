@@ -18,7 +18,7 @@ async function showAllDepartments () {
   const db = await mysql.createConnection({host:'localhost', user: 'root', password: 'password', database: 'company_db'});
   const [rows, fields] = await db.query('SELECT * FROM department');
   updatedDepartments = rows;
-  console.log("All Departments:");
+  console.log("\nAll Departments:");
   console.log(cTable.getTable(updatedDepartments));
   topPrompt();
 };
@@ -27,7 +27,7 @@ async function showAllRoles () {
   const db = await mysql.createConnection({host:'localhost', user: 'root', password: 'password', database: 'company_db'});
   const [rows, fields] = await db.query('SELECT * FROM role');
   updatedRoles = rows;
-  console.log("All Roles:");
+  console.log("\nAll Roles:");
   console.log(cTable.getTable(updatedRoles));
   topPrompt();
 };
@@ -36,7 +36,7 @@ async function showAllEmployees () {
   const db = await mysql.createConnection({host:'localhost', user: 'root', password: 'password', database: 'company_db'});
   const [rows, fields] = await db.query('SELECT * FROM employee');
   updatedEmployees = rows;
-  console.log("All Employees:");
+  console.log("\nAll Employees:");
   console.log(cTable.getTable(updatedEmployees));
   topPrompt();
 };
@@ -48,7 +48,7 @@ async function showAllEmptyRoles() {
   let emptyRoles = rows.map(rows => ({emptyRolesID: rows.id, emptyRolesTitle: rows.title, emptyRolesSalary: rows.salary}));
 
   if (emptyRoles.length == 0 ) {
-    console.log("There are no empty roles.  You'll be taken to the top menu now.");
+    console.log("-----\nThere are no empty roles.\nYou'll be taken to the top menu now.\n-----");
     topPrompt();
   } else {
     console.log("All Empty Roles:");
@@ -108,7 +108,8 @@ async function addDepartment() {
       };
 
       db.query("INSERT INTO department SET ?", objectToInsert);
-      topPrompt();
+      console.log("-----\nDepartment successfully added!\nBelow is the updated list of departments.\n-----");
+      showAllDepartments();
     }
     )
   
@@ -189,9 +190,8 @@ async function addRole() {
       };
 
       db.query("INSERT INTO role SET ?", objectToInsert);
-      console.log("All Departments:");
-      console.log(cTable.getTable(updatedDepartments));
-      topPrompt();
+      console.log("-----\nRole successfully added!\nBelow is the updated list of roles.\n-----");
+      showAllRoles();
     }
     )
   
@@ -205,7 +205,7 @@ async function addEmployee() {
   let arrayOfPositionsToHireFor = rows.map(rows => ({name: `${rows.title}, with a salary of $${rows.salary}`, value: rows.id}));
 
   if (arrayOfPositionsToHireFor.length == 0 ) {
-    console.log("All Positions are filled.  Fire somebody, if you need to make room for a new employee. Back to the Top!");
+    console.log("\n-----\nAll Positions are filled.\nYou'll need to fire (aka, 'delete') somebody, to make room for a new employee.\nThe budget isn't unlimited, you know!\nBack to the top menu you go!\n-----\n");
     topPrompt();
   };
 
@@ -261,7 +261,8 @@ async function addEmployee() {
         manager_id: `${response.empManagerRoleID}`};
       
       db.query("INSERT INTO employee SET ?", objectToInsert);
-      topPrompt();
+      console.log("-----\nEmployee successfully added!\nBelow is the updated list of employees.\n-----");
+      showAllEmployees();
       })
 };
 
@@ -289,9 +290,8 @@ async function deleteEmployee() {
       let deletedEmployeeChosenID = response.deletedEmployee;
 
       db.query("DELETE FROM employee WHERE employee.id = ?", deletedEmployeeChosenID);
-      console.log(`Employee ID number ${deletedEmployeeChosenID} was deleted.  Back to the top!`);
-
-      topPrompt();
+      console.log("-----\nEmployee successfully deleted!\nBelow is the updated list of employees.\n-----");
+      showAllEmployees();
     })
 };
 
