@@ -143,12 +143,28 @@ async function addDepartment() {
       {
         type: 'input',
         message: "What will be the ID number of the new department (2 digits)?",
-        name: "newDeptID"
+        name: "newDeptID",
+        validate: function(newDeptID) {
+          if (newDeptID == !NaN && Number.isInteger(newDeptID) && newDeptID < 99) {
+            return true;
+          } else {
+            console.log("DepartmentID can only be an integer, 1-99.  Back to the top menu we go!");
+            topPrompt();
+          }
+        }
       },
       {
         type: "input",
         message: "What is the name of the new department?",
-        name: "newDeptName"
+        name: "newDeptName",
+        validate: function(newDeptName) {
+          if (typeof newDeptName == 'string' && newDeptName.length <30 ) {
+            return true;
+          } else {
+            console.log("Department name can only be, at most, 30 characters.  Back to the top we go!");
+            topPrompt();
+          }
+        }
       }
     ])
     .then(function(response){
@@ -182,22 +198,54 @@ async function addRole() {
       {
         type: 'input',
         message: "What will be the ID number of the new role? (4 digits)",
-        name: "newRoleID"
+        name: "newRoleID",
+        validate: function(newRoleID) {
+          if (newRoleID == !NaN && Number.isInteger(newRoleID) && newRoleID < 9999) {
+            return true;
+          } else {
+            console.log("Role ID can only be an integer, 1-9999.  Back to the top menu we go!");
+            topPrompt();
+          }
+        }
       },
       {
         type: 'input',
         message: "What will be the TITLE of the new department?",
-        name: "newRoleTitle"
+        name: "newRoleTitle",
+        validate: function(newRoleTitle) {
+          if (typeof newRoleTitle == 'string' && newRoleTitle.length <30 ) {
+            return true;
+          } else {
+            console.log("Role Title can only be, at most, 30 characters.  Back to the top we go!");
+            topPrompt();
+          }
+        }
       },
       {
         type: 'input',
-        message: "What will be the SALARY of the new role? (no commas, 5 digits, or 7 with a decimal point)",
-        name: "newRoleSalary"
+        message: "What will be the SALARY of the new role? (no commas or $ sign, 5-digit integer, or 7-digit 2-decimal)",
+        name: "newRoleSalary",
+        validate: function(newRoleSalary) {
+          if (newRoleSalary == !NaN && newRoleSalary > 0 && newRoleSalary <= 99999.99) {
+            return true;
+          } else {
+            console.log("Salary can only be an number, 0 - 99999.99.    Back to the top menu we go!");
+            topPrompt();
+          }
+        }
       },
       {
         type: "input",
         message: "What is the new role's DEPARTMENT ID NUMBER? (2 digits)",
-        name: "newRoleDeptID"
+        name: "newRoleDeptID",
+        validate: function(newRoleDeptID) {
+          if (newRoleDeptID == !NaN && Number.isInteger(newRoleDeptID) && newRoleDeptID < 99) {
+            return true;
+          } else {
+            console.log("Department ID can only be an integer, 1-99.  Back to the top menu we go!");
+            topPrompt();
+          }
+        }
       }
     ])
     .then(function(response){
@@ -248,12 +296,28 @@ async function addEmployee() {
       {
         type: 'input',
         message: "What is the new employee's FIRST NAME?",
-        name: "empFirstName"
+        name: "empFirstName",
+        validate: function(empFirstName) {
+          if (typeof empFirstName == 'string' && empFirstName.length <30 ) {
+            return true;
+          } else {
+            console.log("Names can only be, at most, 30 characters.  Back to the top we go!");
+            topPrompt();
+          }
+        }
       },
       {
         type: "input",
         message: "What is the new employee's LAST NAME?",
-        name: "empLastName"
+        name: "empLastName",
+        validate: function(empLastName) {
+          if (typeof empLastName == 'string' && empLastName.length <30 ) {
+            return true;
+          } else {
+            console.log("Names can only be, at most, 30 characters.  Back to the top we go!");
+            topPrompt();
+          }
+        }
       },
       {
         type: "list",
