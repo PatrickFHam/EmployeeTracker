@@ -1,6 +1,23 @@
 # EmployeeTracker
 
 ## Video Demonstrations
+- Initializing and Opening the App:  
+  - https://drive.google.com/file/d/1xjUVpfGkh4j0dUsFF3M8pyqbcqVRLs7W/view
+- Showing full lists of Departments, Roles, and Employees:  
+  - https://drive.google.com/file/d/1xjUVpfGkh4j0dUsFF3M8pyqbcqVRLs7W/view
+- Showing no empty roles:  
+  - https://drive.google.com/file/d/13afeUNb-fcfeOJsq-bzvz_XsLZPHTGdw/view
+- Deleting employees, and available roles appearing:
+  - https://drive.google.com/file/d/13afeUNb-fcfeOJsq-bzvz_XsLZPHTGdw/view
+- Adding an employee:  
+  - https://drive.google.com/file/d/1oISWRiQXlp4cbW9VrBXM3LkUXBYL8xYv/view
+- Adding a department:  
+  - https://drive.google.com/file/d/1EAhXB67qhTSHXoV4Ebnd8dOUs-sUbN5X/view
+- Adding a role:  
+  - https://drive.google.com/file/d/1oUT2Wch3dEAB3raQXebjO82-X77qOvVu/view
+- Adding role and immediately adding new employee for that role:  
+  - https://drive.google.com/file/d/1jW6k9ktPT_k2lbbXIyD4R7dV-yLyZMQc/view
+
 
 
 ## Project Description
