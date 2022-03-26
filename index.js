@@ -15,6 +15,7 @@ let updatedEmptyRoles;
 
 // FUNCTIONS WITH BASIC QUERIES, TO SHOW ALL OF SOMETHING
 async function showAllDepartments () {
+  await refreshLists();
   const db = await mysql.createConnection({host:'localhost', user: 'root', password: 'password', database: 'company_db'});
   const [rows, fields] = await db.query('SELECT * FROM department');
   updatedDepartments = rows;
@@ -24,6 +25,7 @@ async function showAllDepartments () {
 };
 
 async function showAllRoles () {
+  await refreshLists();
   const db = await mysql.createConnection({host:'localhost', user: 'root', password: 'password', database: 'company_db'});
   const [rows, fields] = await db.query('SELECT * FROM role');
   updatedRoles = rows;
@@ -33,6 +35,7 @@ async function showAllRoles () {
 };
 
 async function showAllEmployees () {
+  await refreshLists();
   const db = await mysql.createConnection({host:'localhost', user: 'root', password: 'password', database: 'company_db'});
   const [rows, fields] = await db.query('SELECT * FROM employee');
   updatedEmployees = rows;
@@ -78,10 +81,10 @@ async function addDepartment() {
         message: "What will be the ID number of the new department (2 digits)?",
         name: "newDeptID",
         validate: function(newDeptID) {
-          if (newDeptID == !NaN && Number.isInteger(newDeptID) && newDeptID < 99) {
+          if (newDeptID < 99) {
             return true;
           } else {
-            console.log("DepartmentID can only be an integer, 1-99.  Back to the top menu we go!");
+            console.log("\n-----\nDepartmentID can only be an integer, 1-99.  Back to the top menu we go!\n-----\n");
             topPrompt();
           }
         }
@@ -94,7 +97,7 @@ async function addDepartment() {
           if (typeof newDeptName == 'string' && newDeptName.length <30 ) {
             return true;
           } else {
-            console.log("Department name can only be, at most, 30 characters.  Back to the top we go!");
+            console.log("\n-----\nDepartment name can only be, at most, 30 characters.  Back to the top we go!\n-----\n");
             topPrompt();
           }
         }
@@ -132,10 +135,10 @@ async function addRole() {
         message: "What will be the ID number of the new role? (4 digits)",
         name: "newRoleID",
         validate: function(newRoleID) {
-          if (newRoleID == !NaN && Number.isInteger(newRoleID) && newRoleID < 9999) {
+          if (newRoleID < 9999) {
             return true;
           } else {
-            console.log("Role ID can only be an integer, 1-9999.  Back to the top menu we go!");
+            console.log("\n-----\nRole ID can only be an integer, 1-9999.  Back to the top menu we go!\n-----\n");
             topPrompt();
           }
         }
@@ -148,7 +151,7 @@ async function addRole() {
           if (typeof newRoleTitle == 'string' && newRoleTitle.length <30 ) {
             return true;
           } else {
-            console.log("Role Title can only be, at most, 30 characters.  Back to the top we go!");
+            console.log("\n-----\nRole Title can only be, at most, 30 characters.  Back to the top we go!\n-----\n");
             topPrompt();
           }
         }
@@ -158,10 +161,10 @@ async function addRole() {
         message: "What will be the SALARY of the new role? (no commas or $ sign, 5-digit integer, or 7-digit 2-decimal)",
         name: "newRoleSalary",
         validate: function(newRoleSalary) {
-          if (newRoleSalary == !NaN && newRoleSalary > 0 && newRoleSalary <= 99999.99) {
+          if (newRoleSalary <= 99999.99) {
             return true;
           } else {
-            console.log("Salary can only be an number, 0 - 99999.99.    Back to the top menu we go!");
+            console.log("\n-----\nSalary can only be an number, 0 - 99999.99.    Back to the top menu we go!\n-----\n");
             topPrompt();
           }
         }
@@ -171,10 +174,10 @@ async function addRole() {
         message: "What is the new role's DEPARTMENT ID NUMBER? (2 digits)",
         name: "newRoleDeptID",
         validate: function(newRoleDeptID) {
-          if (newRoleDeptID == !NaN && Number.isInteger(newRoleDeptID) && newRoleDeptID < 99) {
+          if (newRoleDeptID < 99) {
             return true;
           } else {
-            console.log("Department ID can only be an integer, 1-99.  Back to the top menu we go!");
+            console.log("\n-----\nDepartment ID can only be an integer, 1-99.  Back to the top menu we go!\n-----\n");
             topPrompt();
           }
         }
@@ -228,7 +231,7 @@ async function addEmployee() {
           if (typeof empFirstName == 'string' && empFirstName.length <30 ) {
             return true;
           } else {
-            console.log("Names can only be, at most, 30 characters.  Back to the top we go!");
+            console.log("\n-----\nNames can only be, at most, 30 characters.  Back to the top we go!\n-----\n");
             topPrompt();
           }
         }
@@ -241,7 +244,7 @@ async function addEmployee() {
           if (typeof empLastName == 'string' && empLastName.length <30 ) {
             return true;
           } else {
-            console.log("Names can only be, at most, 30 characters.  Back to the top we go!");
+            console.log("\n-----\nNames can only be, at most, 30 characters.  Back to the top we go!\n-----\n");
             topPrompt();
           }
         }
@@ -262,8 +265,8 @@ async function addEmployee() {
       
       db.query("INSERT INTO employee SET ?", objectToInsert);
       console.log("-----\nEmployee successfully added!\nBelow is the updated list of employees.\n-----");
-      showAllEmployees();
       })
+      .then(function(){showAllEmployees();})
 };
 
 
@@ -291,8 +294,10 @@ async function deleteEmployee() {
 
       db.query("DELETE FROM employee WHERE employee.id = ?", deletedEmployeeChosenID);
       console.log("-----\nEmployee successfully deleted!\nBelow is the updated list of employees.\n-----");
-      showAllEmployees();
+      // refreshLists();
+      // showAllEmployees();
     })
+    .then(function(){showAllEmployees()})
 };
 
 
@@ -335,7 +340,7 @@ function topPrompt() {
         type: 'list',
         message: 'Which would you like to do?',
         name: 'showWhichGroup',
-        choices: ['Show All Departments', 'Show All Roles', 'Show All Employees', 'Show All Empty Roles', 'Add an Employee', "Delete an Employee", "Add a Department", "Add a Role"]
+        choices: ['Show All Departments', 'Show All Roles', 'Show All Employees', 'Show All Empty Roles', 'Add an Employee', "Delete an Employee", "Add a Department", "Add a Role", "EXIT the Tracker"]
       },
     ])
     .then((data) => {
@@ -365,6 +370,9 @@ function topPrompt() {
         case "Add a Role":
           addRole();
           break;
+        case "EXIT the Tracker":
+          console.log("\n-----\nAll done?  OK!  Enjoy your day!\n-----\n");
+          return;
       }
     });
 };
